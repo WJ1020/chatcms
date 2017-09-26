@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="UTF-8">
+		<title>课堂点名</title>
+		<link rel="stylesheet" href="plugins/layui/css/layui.css" media="all" />
+		<link rel="stylesheet" href="css/global.css" media="all">
+		<link rel="stylesheet" type="text/css" href="http://www.jq22.com/jquery/font-awesome.4.6.0.css">
+		<link rel="stylesheet" href="css/table.css" />
+	</head>
+
+	<body>
+		<div class="admin-main">
+
+			<blockquote class="layui-elem-quote">
+		
+				<select class="select" id="course">
+					<option value="">请选择课程</option>
+
+				</select>
+				<a href="#" class="layui-btn layui-btn-small" id="yes">
+					<i class="layui-icon">&#xe605;</i> 确认
+				</a>
+					<a href="#" class="layui-btn layui-btn-small" id="import">
+					<i class="layui-icon">&#xe608;</i> 导出为Excel
+				</a>
+			</blockquote>
+			
+			<fieldset class="layui-elem-field">
+				<legend id="contentyhead">学生列表</legend>
+				<div class="layui-field-box layui-form">
+					<table class="layui-table admin-table">
+						<thead>
+							<tr>
+								<th>专业</th>
+								<th>课程名</th>
+								<th>学号</th>
+								<th>姓名</th>
+								<th>分数</th>
+							</tr>
+						</thead>
+						<tbody id="content">
+						</tbody>
+					</table>
+				</div>
+			</fieldset>
+		</div>
+		<!--模板(String sno, String name, int sex, String college, String major, String grade-->
+		<script type="text/html" id="tpl">
+			{{# layui.each(d.list, function(index, item){ }}
+			<tr>
+				<td>{{ item.major }}</td>
+				<td>{{ item.courseName }}</td>
+				<td>{{ item.sno }}</td>
+				<td>{{ item.studentName }}</td>
+				<td>{{ item.courseScore }}</td>
+			</tr>
+			{{# }); }}
+		</script>
+		<script type="text/javascript" src="plugins/layui/layui.js"></script>
+		<script>
+			layui.config({
+				base: 'js/'
+			});
+
+			layui.use(['paging', 'form'], function() {
+				var $ = layui.jquery,
+					paging = layui.paging(),
+					layerTips = parent.layer === undefined ? layui.layer : parent.layer, //获取父窗口的layer对象
+					layer = layui.layer, //获取当前窗口的layer对象
+					form = layui.form();
+
+				var initParam={
+                    url: '/data/findstudentscore', //地址
+                    elem: '#content', //内容容器
+                    params: { //发送到服务端的参数
+						id:"0"
+                    },
+                    type: 'GET',
+                    tempElem: '#tpl', //模块容器
+                    pageConfig: { //分页参数配置
+                        elem: '#paged', //分页容器
+                        pageSize: 3 //分页大小
+                    },
+                    success: function() { //渲染成功的回调
+                        //alert('渲染成功');
+                    },
+                    fail: function(msg) { //获取数据失败的回调
+                        //alert('获取数据失败')
+                    },
+                    complate: function() { //完成的回调
+                        //alert('处理完成');
+
+                    },
+                };
+
+                paging.init(initParam);
+
+				$('#import').on('click', function() {//注意这里时导出excel
+                    var id=initParam.params.id;
+                    window.location.href="/downloadstudentscorebyid?id="+id;
+				});
+				$('#yes').click(function () {
+					initParam.params.id=document.getElementById("course").value;
+                    paging.init(initParam);
+                });
+				$.ajax({
+					type:"get",
+					url:"/data/findallcourse",
+					dataType:"json",
+					success:function (result) {
+						var selectObject=document.getElementById("course");
+					    var i;
+						for (i=0;i<result.length;i++){
+						    console.log(result[i].name);
+						    var Item=new Option(result[i].name,result[i].id);
+							selectObject.options.add(Item);
+						}
+                    }
+				});
+			});
+		</script>
+	</body>
+
+</html>
